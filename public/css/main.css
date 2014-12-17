@@ -1,0 +1,44 @@
+@import url(http://fonts.googleapis.com/css?family=Lobster);
+@import url(http://fonts.googleapis.com/css?family=Oswald);
+
+body {
+  padding-top:80px;
+}
+
+body.default {
+  padding-top:80px;
+  background:url(/public/img/blur-bg.jpg) no-repeat center center fixed;
+  -webkit-background-size:cover;
+  -moz-background-size:cover;
+  -o-background-size:cover;
+  background-size:cover
+}
+
+body.simple{
+  background:url(http://subtlepatterns.com/patterns/symphony.png);
+}
+
+a.navbar-brand.custom{
+  font-family: 'Lobster', cursive;
+  font-size: xx-large;
+  color: #e67e22;
+}
+
+li {
+  font-family: 'Oswald', sans-serif;
+  font-size: large;
+}
+
+h1 {
+  font-family: 'Oswald', sans-serif;
+}
+
+label {
+  font-family: 'Oswald', sans-serif;
+}
+
+
+p.enhance {
+  font-family: 'Oswald', sans-serif;
+  font-size: larger;
+}

@@ -6,7 +6,7 @@
             .container{
                 margin:0 auto 0 auto;
             }
-            
+
             .jumbotron h1{
                 text-align: center;
             }
@@ -17,7 +17,7 @@
         <h1>Auction</h1>
     </div>
     <div class= "container">
-        
+
         <div class="panel panel-success">
             <div class="panel-heading">Fabric - 1000 kg</div>
             <div class="panel-body">
@@ -30,7 +30,7 @@
             </ul>
             </div>
         </div>
-        
+
         <div class="well">
             <p>Rank <span  id="rank" class="label label-success">-</span></p>
             <p>Your Bid <span  id="currentBidValue" class="label label-default"></span></p>
@@ -58,7 +58,7 @@
 
 
     </div>
-    </div>    
+    </div>
         <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
         <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
         <script src="/socket.io/socket.io.js"></script>
@@ -66,21 +66,21 @@
         var socket = io();
         $(function(){
             $('#raiseBidBT').click(function(){
-                
+
                 var curentBidVal = 0;
                 curentBidVal = +($('#currentBidValue').text());
-                
+
                 var enteredVal = 0;
                 enteredVal = +($('#bidAmount').val());
                 //$('#currentBidValue').text(curentBidVal + enteredVal)
-                
+
                 var data = {};
                 data.bidAmount = curentBidVal + enteredVal;
                 data.user = $('#username').val();
                 socket.emit('Bids', data);
                 return false;
             })
-            
+
             socket.on('rank', function(dat){
                 $('#rank').text(dat.rank);
                 $('#currentBidValue').text(dat.bidvalue)
@@ -89,5 +89,5 @@
         </script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     </body>
-    
+
 </html>

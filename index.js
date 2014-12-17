@@ -1,16 +1,35 @@
-var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-// ROUTES
-app.get('/', function(req, res) {
-    res.send('<h1>Auxy Framework</h1>');
-});
-app.get('/buyer', function(req, res) {
-    res.sendFile(__dirname + '/views/buyer.html');
-});
-app.get('/seller', function(req, res) {
-    res.sendFile(__dirname + '/views/seller.html');
-});
+var express                 = require('express')
+    app                     = express(),
+    http                    = require('http').Server(app),
+    io                      = require('socket.io')(http),
+    mongoose                = require('mongoose'),
+    passport                = require('passport'),
+    cookieParser            = require('cookie-parser'),
+    bodyParser              = require('body-parser'),
+    session                 = require('express-session'),
+    flash                   = require('connect-flash');
+
+var configDB                = require('./config/database.js');
+mongoose.connect(configDB.url);
+require('./config/passport')(passport);
+
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true })); 
+
+app.set('view engine', 'ejs');
+
+// required for passport
+app.use(session({ secret: 'IrisBitGUID',
+                  resave: false,
+                  saveUninitialized: true
+                })
+        ); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash());
+app.use('/public', express.static(__dirname + "/public"));
+require('./app/routes.js')(app, passport);
+
 var BIDS = [];
 
 function BidData(usr, amnt, sock) {
@@ -60,9 +79,9 @@ io.on('connection', function(socket) {
             if (typeof usrSock != 'undefined') {
                  usrSock.emit("rank", message);
             }
-           
+
         }
-        
+
     });
 });
 http.listen(8000, function() {
