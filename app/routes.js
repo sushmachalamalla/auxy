@@ -68,8 +68,23 @@ app.get('/profile', isLoggedIn, function(req, res) {
   });
 });
 
+app.get('/auctions', isLoggedIn, function(req, res){
+// if its admin, render admin-auctions
+  if (req.user.local.isAdmin) {
+    res.render('admin-auctions.ejs', {
+      user: req.user
+    });
+  }
+  else {
+    res.render('regular-auctions.ejs', {
+      user: req.user
+    });
+  }
+// else render regular-auctions
+}) // get /auctions
 
-app.get('/Users', isLoggedIn, function(req, res){
+/* API Methods */
+app.get('/api/users', isLoggedIn, function(req, res){
   // Allow only for admins
   if (req.user.local.isAdmin) {
     var allUsers = [];
@@ -125,7 +140,7 @@ app.get('/Users', isLoggedIn, function(req, res){
   }
 })
 
-app.post('/Users', isLoggedIn, function(req, res){
+app.post('/api/users', isLoggedIn, function(req, res){
   // Allow only for admins
   if (req.user.local.isAdmin) {
     var usersIdsToApprove = req.body.usersIdsToApprove;

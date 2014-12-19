@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Profile</title>
+    <title>Admin Dasboard</title>
     <link href="/public/css/external/bootstrap.min.css" rel="stylesheet">
     <link href="/public/css/external/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/public/css/main.css">
 </head>
 
-<body>
+<body class="simple">
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -25,7 +25,7 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
         <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/auctions">Auctions</a></li>
+        <li class="active"><a href="#">Auctions</a></li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
@@ -43,7 +43,7 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <%= user.local.email %><span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
-            <li class="active"><a href="/Profile">My Profile</a></li>
+            <li><a href="/Profile">My Profile</a></li>
             <li><a href="#">Another action</a></li>
             <li><a href="#">Something else here</a></li>
             <li class="divider"></li>
@@ -56,13 +56,12 @@
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
 </nav>
-
 <% if(user.local.status == 0) { %>
   <div class="alert alert-warning alert-dismissible" role="alert">
     <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
     <strong>Warning!</strong> The admin has not yet approved your request. Some functionalities might be restricted
   </div>
-  <% } %>
+<% } %>
 
 <!-- Scripts -->
 <script src="/public/js/external/jquery.min.js"></script>

@@ -60,7 +60,7 @@ $(function(){
 })
 
 var getUsersData = function(){
-  $.get('/users?status=0')
+  $.get('/api/users?status=0')
   .done(function(data){
     if (typeof data !== 'undefined') {
 
