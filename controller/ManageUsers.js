@@ -20,4 +20,4 @@ exports.approveUsers = function(userIds, callback){
     function(err, numberEffected){
       callback(err, numberEffected);
     })
-}
+};

@@ -15,6 +15,7 @@ module.exports = function(app, passport) {
   app.post('/login', passport.authenticate('local-login', {
     successRedirect : '/dashboard', // redirect to dashboard
     failureRedirect : '/login', // redirect back to the signup page if there is an error
+    failureFlash : true
   }));
 
   // Signup
@@ -49,120 +50,123 @@ module.exports = function(app, passport) {
     req.logout();
     res.redirect('/');
   });
-};
 
-// Buyer
-app.get('/buyer', function(req, res) {
-  res.render('buyer.ejs');
-});
+  // Buyer
+  app.get('/buyer', function(req, res) {
+    res.render('buyer.ejs');
+  });
 
 // Seller
-app.get('/seller', function(req, res) {
-  res.render('seller.ejs');
-});
+  app.get('/seller', function(req, res) {
+    res.render('seller.ejs');
+  });
 
 // Profile
-app.get('/profile', isLoggedIn, function(req, res) {
-  res.render('profile.ejs', {
-    user: req.user
+  app.get('/profile', isLoggedIn, function(req, res) {
+    res.render('profile.ejs', {
+      user: req.user
+    });
   });
-});
 
-app.get('/auctions', isLoggedIn, function(req, res){
+  app.get('/auctions', isLoggedIn, function(req, res){
 // if its admin, render admin-auctions
-  if (req.user.local.isAdmin) {
-    res.render('admin-auctions.ejs', {
-      user: req.user
-    });
-  }
-  else {
-    res.render('regular-auctions.ejs', {
-      user: req.user
-    });
-  }
-// else render regular-auctions
-}) // get /auctions
-
-/* API Methods */
-app.get('/api/users', isLoggedIn, function(req, res){
-  // Allow only for admins
-  if (req.user.local.isAdmin) {
-    var allUsers = [];
-    var queryStatus = req.query.status;
-    // status 0: Pending, 1: Approved
-    if (typeof queryStatus !== 'undefined' ) {
-      manageUsers.getUsersFilterByStatus(queryStatus, function(err, users){
-        if (err) {
-          res.sendStatus(400);
-        }
-        else {
-          users.forEach(function(usr){
-            var individual = {
-              id: usr._id,
-              email: usr.local.email,
-              status: usr.local.status,
-              isAdmin: usr.local.isAdmin
-            };
-
-            allUsers.push(individual);
-          });
-
-          // send the users
-          res.json(allUsers);
-        }
+    if (req.user.local.isAdmin) {
+      res.render('admin-auctions.ejs', {
+        user: req.user
       });
-    }else {
-      manageUsers.getAllUsers(function(err, users){
-        if (err) {
-          res.sendStatus(400);
-        }
-        else {
-          users.forEach(function(usr){
-            var individual = {
-              id: usr._id,
-              email: usr.local.email,
-              status: usr.local.status,
-              isAdmin: usr.local.isAdmin
-            };
-
-            allUsers.push(individual);
-          });
-
-          // send the users
-          res.json(allUsers);
-        }
-      }); // getAllUsers
     }
-
-  }
-  else {
-    res.sendStatus(401);
-  }
-})
-
-app.post('/api/users', isLoggedIn, function(req, res){
-  // Allow only for admins
-  if (req.user.local.isAdmin) {
-    var usersIdsToApprove = req.body.usersIdsToApprove;
-    console.log(usersIdsToApprove);
-    if (typeof usersIdsToApprove !== 'undefined') {
-      manageUsers.approveUsers(usersIdsToApprove, function(err, dat){
-        if (err) {
-          res.sendStatus(400);
-        }
-        else{
-          res.json(dat);
-        }
-      })
+    else {
+      res.render('regular-auctions.ejs', {
+        user: req.user
+      });
     }
-    else{
-      res.sendStatus(400);
+// else render regular-auctions
+  }); // get /auctions
+
+  /* API Methods */
+  app.get('/api/users', isLoggedIn, function(req, res){
+    // Allow only for admins
+    if (req.user.local.isAdmin) {
+      var allUsers = [];
+      var queryStatus = req.query.status;
+      // status 0: Pending, 1: Approved
+      if (typeof queryStatus !== 'undefined' ) {
+        manageUsers.getUsersFilterByStatus(queryStatus, function(err, users){
+          if (err) {
+            res.sendStatus(400);
+          }
+          else {
+            users.forEach(function(usr){
+              var individual = {
+                id: usr._id,
+                email: usr.local.email,
+                status: usr.local.status,
+                isAdmin: usr.local.isAdmin
+              };
+
+              allUsers.push(individual);
+            });
+
+            // send the users
+            res.json(allUsers);
+          }
+        });
+      }else {
+        manageUsers.getAllUsers(function(err, users){
+          if (err) {
+            res.sendStatus(400);
+          }
+          else {
+            users.forEach(function(usr){
+              var individual = {
+                id: usr._id,
+                email: usr.local.email,
+                status: usr.local.status,
+                isAdmin: usr.local.isAdmin
+              };
+
+              allUsers.push(individual);
+            });
+
+            // send the users
+            res.json(allUsers);
+          }
+        }); // getAllUsers
+      }
+
     }
-  }
-  else {
-    res.sendStatus(401);
-  }
-})
+    else {
+      res.sendStatus(401);
+    }
+  });
+
+  app.post('/api/users', isLoggedIn, function(req, res){
+    // Allow only for admins
+    if (req.user.local.isAdmin) {
+      var usersIdsToApprove = req.body.usersIdsToApprove;
+      console.log(usersIdsToApprove);
+      if (typeof usersIdsToApprove !== 'undefined') {
+        manageUsers.approveUsers(usersIdsToApprove, function(err, dat){
+          if (err) {
+            res.sendStatus(400);
+          }
+          else{
+            res.json(dat);
+          }
+        })
+      }
+      else{
+        res.sendStatus(400);
+      }
+    }
+    else {
+      res.sendStatus(401);
+    }
+  });
+
+};
+
+
 // Middleware
 function isLoggedIn(req, res, next) {
 

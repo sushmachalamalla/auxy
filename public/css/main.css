@@ -234,10 +234,7 @@ p.enhance {
 .timeline-body > ul {
   margin-bottom: 0;
 }
-.timeline-body > p {
-  font-family: '';
-  font-size: '';
-}
+
 .timeline-body > p + p {
   margin-top: 5px;
 }

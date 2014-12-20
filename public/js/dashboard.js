@@ -1,7 +1,7 @@
 $(function(){
   $('#profile-link').on('click', function(){
     getUsersData();
-  }) // #profile-link click
+  }); // #profile-link click
 
   // Approve
   $('#approve-requests').on('click', function(event){
@@ -13,7 +13,7 @@ $(function(){
       var approved = [];
       $.each(checked, function(index, val){
         approved.push(val.id);
-      })
+      });
 
       if (approved.length > 0) {
         $.ajax({
@@ -24,7 +24,7 @@ $(function(){
           success: function(data){
             console.log(JSON.stringify(data));
           }
-        })
+        });
         getUsersData();
       }
     }
@@ -57,7 +57,7 @@ $(function(){
       $('#requestsTable').find('#checkall').prop('indeterminate', true);
     }
   });
-})
+});
 
 var getUsersData = function(){
   $.get('/api/users?status=0')
@@ -90,4 +90,4 @@ var getUsersData = function(){
     }//if
 
   }); //done
-}
+};

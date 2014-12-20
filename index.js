@@ -1,4 +1,4 @@
-var express                 = require('express')
+var express                 = require('express'),
     app                     = express(),
     http                    = require('http').Server(app),
     io                      = require('socket.io')(http),
@@ -58,7 +58,7 @@ io.on('connection', function(socket) {
                     if (i == BIDS.length - 1) {
                         BIDS.push(dat);
                         break;
-                    } else continue;
+                    }
                 }
             } //for
         }
