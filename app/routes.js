@@ -1,4 +1,5 @@
-var manageUsers       = require('../controller/ManageUsers');
+var manageUsers       = require('../controller/ManageUsers'),
+    manageAuctions    = require('../controller/ManageAuctions');
 
 module.exports = function(app, passport) {
 
@@ -152,6 +153,56 @@ module.exports = function(app, passport) {
           }
           else{
             res.json(dat);
+          }
+        })
+      }
+      else{
+        res.sendStatus(400);
+      }
+    }
+    else {
+      res.sendStatus(401);
+    }
+  });
+
+  app.get('/api/auctions', isLoggedIn, function(req, res){
+    // Allow only for admins
+    if (req.user.local.isAdmin) {
+
+      if (true) {
+
+        manageAuctions.getAuctions(null,function(err, data){
+          if (err) {
+            res.sendStatus(400);
+          }
+          else{
+            res.json(data);
+          }
+        })
+      }
+      else{
+        res.sendStatus(400);
+      }
+    }
+    else {
+      res.sendStatus(401);
+    }
+  });
+
+  app.post('/api/auctions', isLoggedIn, function(req, res){
+    // Allow only for admins
+    if (req.user.local.isAdmin) {
+      var auctionData = req.body.auctionInfo;
+      if (typeof auctionData !== 'undefined') {
+
+        // add createdBy field
+        auctionData.auctionCreatedBy = req.user.local.email;
+        manageAuctions.createAuction(auctionData, function(err, data){
+          if (err) {
+            res.sendStatus(400);
+          }
+          else{
+            res.json(data);
           }
         })
       }

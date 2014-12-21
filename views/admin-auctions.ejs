@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app>
+<html ng-app="admin-auctions">
 <head>
     <title>Auctions</title>
     <link rel="stylesheet" href="/public/css/external/bootstrap.min.css" >
@@ -60,12 +60,12 @@
 <% if(user.local.status == 0) { %>
   <div class="alert alert-warning alert-dismissible" role="alert">
     <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-    <strong>Warning!</strong> The admin has not yet approved your request. Some functionalities might be restricted
+    <strong>Warning!</strong> The admin has not yet approved your request. Some functionality might be restricted
   </div>
 <% } %>
 
 <!-- Auctions Wizard START -->
-<div class="panel panel-default" style="margin: 20px;">
+<div class="panel panel-default" style="margin: 20px;" ng-controller="auctionsWizardController">
   <div class="panel-heading">
     <h3 class="panel-title"><p class="enhance">Auction Wizard</p></h3>
   </div>
@@ -99,11 +99,11 @@
               </div>
               <div class="form-group">
                 <label class="control-label">Auction Description</label>
-                <textarea id="wizard-auctionDescription" class="form-control" rows="3" placeholder="Enter Auction Description"> </textarea>
+                <textarea id="wizard-auctionDescription" ng-model="auctionDescription" class="form-control" rows="3" placeholder="Enter Auction Description"> </textarea>
               </div>
               <div class="form-group">
                 <label class="control-label">Date of Auction</label>
-                <input id="wizard-auctionDate" maxlength="10" type="text" required="required" class="form-control" placeholder="Enter Date of Auction" />
+                <input id="wizard-auctionDate" ng-model="auctionDateOfAuction" maxlength="10" type="text" required="required" class="form-control" placeholder="Enter Date of Auction" />
               </div>
               <button class="btn btn-primary nextBtn btn-lg pull-right" type="button" >Next</button>
             </div>
@@ -113,24 +113,41 @@
           <div class="col-xs-12">
             <div class="col-md-12">
               <h3> Add items to <label class="enhance" style="color:#3498db">{{auctionName}}</label></h3>
-              <div class="panel panel-default">
-                <!-- Default panel contents -->
-                <div class="panel-heading">Panel heading</div>
-                <div class="panel-body">
-                  <button type="button" class="btn btn-info pull-left"><span class="glyphicon glyphicon-plus" aria-hidden="true"> Add</span></button>
-                  <div class="pull-right"><span class="label label-info">Items</span> <span class="badge">4</span> </div>
+              <div class="panel panel-default widget">
+                <div class="panel-heading">
+                  <h3 class="panel-title"><button id="addItem" type="button" class="btn btn-info" data-toggle="modal" data-target="#addEditItemModal" ><span class="glyphicon glyphicon-plus" aria-hidden="true"> Add</span></button></h3>
+                  <span class="label label-info">{{auctionItems.length}}</span>
                 </div>
+                <div class="panel-body">
+                  <!-- List group -->
+                  <ul id="sortable" class="list-group">
+                    <li ng-repeat="item in auctionItems" class="list-group-item">
+                      <div class="row">
+                        <div class="col-xs-2 col-md-1">
+                          <img src="http://placehold.it/80" class="img-circle img-responsive" alt="" /></div>
+                        <div class="col-xs-10 col-md-11">
+                          <div>
+                            <a href="#">{{item.name}}</a>
+                            <div class="mic-info">QUANTITY: {{item.quantity}} | START: {{item.startTime}} | END: {{item.endTime}}</div>
+                          </div>
+                          <div class="comment-text" style="white-space: pre-wrap;">{{item.description}}</div>
+                          <div class="action">
+                            <!--<button type="button" ng-click="invokeUpdateAuctionItemModal(item)" class="btn btn-primary btn-xs" title="Edit">-->
+                              <!--<span class="glyphicon glyphicon-pencil"></span>-->
+                            <!--</button>-->
+                            <button type="button" ng-click="removeItemFromAuction(item)" class="btn btn-danger btn-xs" title="Delete">
+                              <span class="glyphicon glyphicon-trash"></span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
 
-                <!-- List group -->
-                <ul id="sortable" class="list-group">
-                  <li class="list-group-item"><span class="glyphicon glyphicon-inbox"></span>Item 1</li>
-                  <li class="list-group-item"><span class="glyphicon glyphicon-inbox"></span>Item 2</li>
-                  <li class="list-group-item"><span class="glyphicon glyphicon-inbox" aria-hidden="true"></span>Item 3</li>
-                  <li class="list-group-item"><span class="glyphicon glyphicon-inbox" aria-hidden="true"></span>Item 4</li>
-                  <li class="list-group-item"><span class="glyphicon glyphicon-inbox" aria-hidden="true"></span>Item 5</li>
-                  <li class="list-group-item"><span class="glyphicon glyphicon-inbox" aria-hidden="true"></span>Item 6</li>
-                  <li class="list-group-item"><span class="glyphicon glyphicon-inbox" aria-hidden="true"></span>Item 7</li>
-                </ul>
+
+                    </li>
+                  </ul>
+                </div>
+                <hr>
+                <pre ng-bind="auctionItems|json"></pre>
               </div>
 
               <div class="form-group">
@@ -146,8 +163,16 @@
         <div class="row setup-content" id="step-3">
           <div class="col-xs-12">
             <div class="col-md-12">
-              <h3> Step 3</h3>
-              <button class="btn btn-success btn-lg pull-right" type="submit">Finish!</button>
+              <h3> Ready to Finish!</h3>
+              <div id="finishAlert">
+                <!-- Add alert details dynamically -->
+              </div>
+              <div class="well">
+                <p>
+                  Click Finish to save <strong>{{auctionName}}</strong> having <strong>{{auctionItems.length}}</strong> item(s).
+                </p>
+              </div>
+              <button class="btn btn-success btn-lg pull-right" type="submit" ng-click="sendAuctionInfoToServer()">Finish!</button>
             </div>
           </div>
         </div>
@@ -155,6 +180,77 @@
     </div>
     <!-- WIZARD -->
   </div>
+  <!-- Add Auction Items Modal Start -->
+  <div class="modal fade" id="addEditItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Adding items to <label class="enhance" style="color:#3498db">{{auctionName}}</label> </h4>
+        </div>
+        <div class="modal-body">
+          <div id="saveAlert">
+            <!-- Add alert details dynamically -->
+          </div>
+          <form class="form-horizontal" role="form">
+            <div class="form-group">
+              <label for="inputItemName" class="col-sm-2 control-label">Name</label>
+              <div class="col-sm-10">
+                <input ng-model="itemName" type="text" class="form-control" id="inputItemName" placeholder="Name" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputItemDescription" class="col-sm-2 control-label">Description</label>
+              <div class="col-sm-10">
+                <textarea ng-model="itemDescription" type="text" class="form-control" id="inputItemDescription" placeholder="Description" rows="3"> </textarea>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputItemCurrency" class="col-sm-2 control-label">Currency</label>
+              <div class="col-sm-10">
+                <select id="inputItemCurrency" class="form-control" ng-model="itemCurrency" ng-selected="1" ng-options="key as value for (key, value) in currencyList"></select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputItemFloorPrice" class="col-sm-2 control-label">Floor Price</label>
+              <div class="col-sm-10">
+                <input ng-model="itemFloorPrice" type="number" class="form-control" id="inputItemFloorPrice" placeholder="Floor Price" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputItemMinimumIncrement" class="col-sm-2 control-label">Minimum Increment</label>
+              <div class="col-sm-10">
+                <input ng-model="itemMinimumIncrement" type="number" class="form-control" id="inputItemMinimumIncrement" placeholder="Minimum Increment" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputItemQuantity" class="col-sm-2 control-label">Quantity</label>
+              <div class="col-sm-10">
+                <input ng-model="itemQuantity" type="number" class="form-control" id="inputItemQuantity" placeholder="Quantity" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputStartTime" class="col-sm-2 control-label">Start Time</label>
+              <div class="col-sm-10">
+                <input ng-model="itemStartTime" type="datetime" class="form-control" id="inputStartTime" placeholder="Start Time" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputEndTime" class="col-sm-2 control-label">End Time</label>
+              <div class="col-sm-10">
+                <input ng-model="itemEndTime" type="datetime" class="form-control" id="inputEndTime" placeholder="End Time" required>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" ng-click="addItemToAuction()" >Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--Add Auction Items Modal End-->
 </div>
 
 <!-- Auctions Wizard END -->
@@ -162,100 +258,25 @@
 <!-- VIEW Auctions START -->
 
 <!-- TIME LINE START -->
-<div class="panel panel-default" style="margin: 20px;">
+<div class="panel panel-default" style="margin: 20px;" ng-controller="auctionsTimeLineController">
   <div class="panel-body">
 <div class="container">
   <div class="page-header">
-    <h1 id="timeline">Timeline</h1>
+    <h1 id="timeline">Auctions Timeline
+      <small><button class="btn btn-success pull-right" ng-click="timeLineRefresh()"><span class="glyphicon glyphicon-refresh " aria-hidden="true"></span></button></small>
+    </h1>
   </div>
-  <ul class="timeline">
-    <li>
-      <div class="timeline-badge"><i class="glyphicon glyphicon-check"></i></div>
+  <ul class="timeline" ng-repeat="item in timeLineElements">
+    <li ng-class="{'timeline-inverted': item.auctionState == '1'}">
+      <div ng-if="item.auctionState == '0'" class="timeline-badge"><i class="glyphicon glyphicon glyphicon-eye-close"></i></div>
+      <div ng-if="item.auctionState == '1'" class="timeline-badge info"><i class="glyphicon glyphicon glyphicon-eye-open"></i></div>
       <div class="timeline-panel">
         <div class="timeline-heading">
-          <h4 class="timeline-title">Mussum ipsum cacilds</h4>
-          <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i> 11 hours ago via Twitter</small></p>
+          <h4 class="timeline-title">{{item.auctionName}}</h4>
+          <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i> {{item.auctionDateOfAuction}} by <strong>{{item.auctionCreatedBy}}</strong></small></p>
         </div>
         <div class="timeline-body">
-          <p>Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga. Sapien in monti palavris qui num significa nadis i pareci latim. Interessantiss quisso pudia ce receita de bolis, mais bolis eu num gostis.</p>
-        </div>
-      </div>
-    </li>
-    <li class="timeline-inverted">
-      <div class="timeline-badge warning"><i class="glyphicon glyphicon-credit-card"></i></div>
-      <div class="timeline-panel">
-        <div class="timeline-heading">
-          <h4 class="timeline-title">Mussum ipsum cacilds</h4>
-        </div>
-        <div class="timeline-body">
-          <p>Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga. Sapien in monti palavris qui num significa nadis i pareci latim. Interessantiss quisso pudia ce receita de bolis, mais bolis eu num gostis.</p>
-          <p>Suco de cevadiss, é um leite divinis, qui tem lupuliz, matis, aguis e fermentis. Interagi no mé, cursus quis, vehicula ac nisi. Aenean vel dui dui. Nullam leo erat, aliquet quis tempus a, posuere ut mi. Ut scelerisque neque et turpis posuere pulvinar pellentesque nibh ullamcorper. Pharetra in mattis molestie, volutpat elementum justo. Aenean ut ante turpis. Pellentesque laoreet mé vel lectus scelerisque interdum cursus velit auctor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ac mauris lectus, non scelerisque augue. Aenean justo massa.</p>
-        </div>
-      </div>
-    </li>
-    <li>
-      <div class="timeline-badge danger"><i class="glyphicon glyphicon-credit-card"></i></div>
-      <div class="timeline-panel">
-        <div class="timeline-heading">
-          <h4 class="timeline-title">Mussum ipsum cacilds</h4>
-        </div>
-        <div class="timeline-body">
-          <p>Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga. Sapien in monti palavris qui num significa nadis i pareci latim. Interessantiss quisso pudia ce receita de bolis, mais bolis eu num gostis.</p>
-        </div>
-      </div>
-    </li>
-    <li class="timeline-inverted">
-      <div class="timeline-panel">
-        <div class="timeline-heading">
-          <h4 class="timeline-title">Mussum ipsum cacilds</h4>
-        </div>
-        <div class="timeline-body">
-          <p>Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga. Sapien in monti palavris qui num significa nadis i pareci latim. Interessantiss quisso pudia ce receita de bolis, mais bolis eu num gostis.</p>
-        </div>
-      </div>
-    </li>
-    <li>
-      <div class="timeline-badge info"><i class="glyphicon glyphicon-floppy-disk"></i></div>
-      <div class="timeline-panel">
-        <div class="timeline-heading">
-          <h4 class="timeline-title">Mussum ipsum cacilds</h4>
-        </div>
-        <div class="timeline-body">
-          <p>Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga. Sapien in monti palavris qui num significa nadis i pareci latim. Interessantiss quisso pudia ce receita de bolis, mais bolis eu num gostis.</p>
-          <hr>
-          <div class="btn-group">
-            <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
-              <i class="glyphicon glyphicon-cog"></i> <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
-              <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </li>
-    <li>
-      <div class="timeline-panel">
-        <div class="timeline-heading">
-          <h4 class="timeline-title">Mussum ipsum cacilds</h4>
-        </div>
-        <div class="timeline-body">
-          <p>Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga. Sapien in monti palavris qui num significa nadis i pareci latim. Interessantiss quisso pudia ce receita de bolis, mais bolis eu num gostis.</p>
-        </div>
-      </div>
-    </li>
-    <li class="timeline-inverted">
-      <div class="timeline-badge success"><i class="glyphicon glyphicon-thumbs-up"></i></div>
-      <div class="timeline-panel">
-        <div class="timeline-heading">
-          <h4 class="timeline-title">Mussum ipsum cacilds</h4>
-        </div>
-        <div class="timeline-body">
-          <p>Mussum ipsum cacilds, vidis litro abertis. Consetis adipiscings elitis. Pra lá , depois divoltis porris, paradis. Paisis, filhis, espiritis santis. Mé faiz elementum girarzis, nisi eros vermeio, in elementis mé pra quem é amistosis quis leo. Manduma pindureta quium dia nois paga. Sapien in monti palavris qui num significa nadis i pareci latim. Interessantiss quisso pudia ce receita de bolis, mais bolis eu num gostis.</p>
+          <p>{{item.auctionDescription}}</p>
         </div>
       </div>
     </li>
@@ -272,14 +293,10 @@
 <script src="/public/js/external/jquery-ui.min.js"></script>
 <script src="/public/js/external/bootstrap.min.js"></script>
 <script src="/public/js/external/angular.min.js"></script>
+<script src="/public/controllers/auctions.js"></script>
 <script>
 $(document).ready(function () {
   $( "#wizard-auctionDate" ).datepicker({ minDate: -3, maxDate: "+10Y" });
-  $( "#sortable" ).sortable({
-    stop: function(event, ui) {
-      console.log("New position: " + ui.item.index());
-    }
-  });
   $( "#sortable" ).disableSelection();
   var navListItems = $('div.setup-panel div a'),
   allWells = $('.setup-content'),
