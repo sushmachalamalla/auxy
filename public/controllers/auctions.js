@@ -1,6 +1,6 @@
 var adminAuctions = angular.module('admin-auctions', []);
 
-adminAuctions.controller('auctionsWizardController',['$scope', '$http', function ($scope, $http) {
+adminAuctions.controller('auctionsWizardController',['$scope', '$rootScope' , '$http', function ($scope, $rootScope, $http) {
     var sortableEle;
     $scope.auctionItems = [];
 
@@ -101,6 +101,9 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$http', function
             alertHTML += "            <\/div>";
 
             $('#saveAlert').html(alertHTML);
+            $("#saveAlert").fadeTo(2000, 4000).slideUp(2000, function(){
+                $("#saveAlert").alert('close');
+            });
 
             // Clear the controls
             $scope.itemName = "";
@@ -120,6 +123,10 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$http', function
             alertHTML += "            <\/div>";
 
             $('#saveAlert').html(alertHTML);
+            $("#saveAlert").fadeTo(2000, 4000).slideUp(2000, function(){
+                $("#saveAlert").alert('close');
+            });
+            $rootScope.$broadcast("timeLineRefresh", {});
         }
 
     };
@@ -145,6 +152,9 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$http', function
             alertHTML += "            <\/div>";
 
             $('#finishAlert').html(alertHTML);
+            $("#finishAlert").fadeTo(2000, 4000).slideUp(2000, function(){
+                $("#finishAlert").alert('close');
+            });
             return;
         }
 
@@ -160,6 +170,9 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$http', function
                 alertHTML += "            <\/div>";
 
                 $('#finishAlert').html(alertHTML);
+                $("#finishAlert").fadeTo(2000, 2000).slideUp(1000, function(){
+                    $("#finishAlert").alert('close');
+                });
 
                 // Clear the controls
                 $scope.$apply(function(){
@@ -169,9 +182,8 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$http', function
                     $scope.auctionItems = [];
                 });
 
-                 // Call the timeLineRefresh event
-                $scope.$broadcast("timeLineRefresh", {});
-
+                // Call the timeLineRefresh event
+                $rootScope.$broadcast("timeLineRefresh", {});
             },
             error: function(request, status, error){
                 alertHTML += "            <div class=\"alert alert-danger alert-dismissible\" role=\"alert\">";
@@ -180,6 +192,9 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$http', function
                 alertHTML += "            <\/div>";
 
                 $('#finishAlert').html(alertHTML);
+                $("#finishAlert").fadeTo(2000, 2000).slideUp(2000, function(){
+                    $("#finishAlert").alert('close');
+                });
             }
         });
     };
@@ -230,8 +245,23 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$http', function
     });
 }]);
 
-adminAuctions.controller('auctionsTimeLineController', function($scope){
+adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', function($scope, $rootScope){
     $scope.timeLineElements = [];
+
+    // Event that listens for refresh calls of timeLine
+    $rootScope.$on('timeLineRefresh', function(event, args){
+        getAuctions(function(err, data){
+            if(err){
+
+            }
+            else {
+                $scope.$apply(function(){
+                    $scope.timeLineElements = data;
+                });
+
+            }
+        });
+    });
 
     // get the auctions
     getAuctions(function(err, data){
@@ -239,7 +269,6 @@ adminAuctions.controller('auctionsTimeLineController', function($scope){
 
         }
         else {
-            console.log(data);
             $scope.$apply(function(){
                 $scope.timeLineElements = data;
             });
@@ -248,36 +277,21 @@ adminAuctions.controller('auctionsTimeLineController', function($scope){
     });
 
     $scope.timeLineRefresh = function(){
+        console.log('timeLine refresh');
         getAuctions(function(err, data){
             if(err){
 
             }
             else {
-                console.log(data);
                 $scope.$apply(function(){
                     $scope.timeLineElements = data;
                 });
 
             }
         });
-    }
+    };
 
-    // Event that listens for refresh calls of timeline
-    $scope.$on('timeLineRefresh', function(event, args){
-        getAuctions(function(err, data){
-            if(err){
-
-            }
-            else {
-                console.log(data);
-                $scope.$apply(function(){
-                    $scope.timeLineElements = data;
-                });
-
-            }
-        });
-    });
-});
+}]);
 
 var commonCurrencyList = function(){
     // Credit: http://data.okfn.org/data/core/country-codes/r/country-codes.json
@@ -443,7 +457,6 @@ var commonCurrencyList = function(){
 };
 
 var getAuctions = function(callback){
-    console.log('called');
     $.ajax({
         url: '/api/auctions',
         type: 'GET',

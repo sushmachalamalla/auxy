@@ -115,8 +115,14 @@
               <h3> Add items to <label class="enhance" style="color:#3498db">{{auctionName}}</label></h3>
               <div class="panel panel-default widget">
                 <div class="panel-heading">
-                  <h3 class="panel-title"><button id="addItem" type="button" class="btn btn-info" data-toggle="modal" data-target="#addEditItemModal" ><span class="glyphicon glyphicon-plus" aria-hidden="true"> Add</span></button></h3>
-                  <span class="label label-info">{{auctionItems.length}}</span>
+                  <div class="panel-title">
+                    <button id="addItem" type="button" class="btn btn-info" data-toggle="modal" data-target="#addEditItemModal" ><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+                    <div class="pull-right">
+                      <button type="button" class="btn btn-link" disabled="disabled">
+                        <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> {{auctionItems.length}}
+                      </button>
+                     </div>
+                  </div>
                 </div>
                 <div class="panel-body">
                   <!-- List group -->
@@ -142,12 +148,11 @@
                         </div>
                       </div>
 
-
                     </li>
                   </ul>
                 </div>
-                <hr>
-                <pre ng-bind="auctionItems|json"></pre>
+                <!--<hr>-->
+                <!--<pre ng-bind="auctionItems|json"></pre>-->
               </div>
 
               <div class="form-group">
@@ -169,7 +174,7 @@
               </div>
               <div class="well">
                 <p>
-                  Click Finish to save <strong>{{auctionName}}</strong> having <strong>{{auctionItems.length}}</strong> item(s).
+                  Click Finish to save the auction <strong>{{auctionName}}</strong> having <strong>{{auctionItems.length}}</strong> item(s).
                 </p>
               </div>
               <button class="btn btn-success btn-lg pull-right" type="submit" ng-click="sendAuctionInfoToServer()">Finish!</button>
@@ -276,7 +281,7 @@
           <p><small class="text-muted"><i class="glyphicon glyphicon-time"></i> {{item.auctionDateOfAuction}} by <strong>{{item.auctionCreatedBy}}</strong></small></p>
         </div>
         <div class="timeline-body">
-          <p>{{item.auctionDescription}}</p>
+          <p style="white-space: pre-wrap;">{{item.auctionDescription}}</p>
         </div>
       </div>
     </li>
