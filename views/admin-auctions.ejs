@@ -268,7 +268,12 @@
 <div class="container">
   <div class="page-header">
     <h1 id="timeline">Auctions Timeline
-      <small><button class="btn btn-success pull-right" ng-click="timeLineRefresh()"><span class="glyphicon glyphicon-refresh " aria-hidden="true"></span></button></small>
+      <small>
+        <button class="btn btn-success pull-right" ng-click="timeLineRefresh()"><span class="glyphicon glyphicon-refresh " aria-hidden="true"></span></button>
+      </small>
+      <div class="clearfix">
+        <h4><small class="pull-right">Refreshed <strong style="color:#3498db">{{lastRefreshText}}</strong> ago </small></h4>
+      </div>
     </h1>
   </div>
   <ul class="timeline" ng-repeat="item in timeLineElements">

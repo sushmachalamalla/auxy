@@ -245,9 +245,11 @@ adminAuctions.controller('auctionsWizardController',['$scope', '$rootScope' , '$
     });
 }]);
 
-adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', function($scope, $rootScope){
+adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', '$timeout', function($scope, $rootScope, $timeout){
     $scope.timeLineElements = [];
-
+    $scope.lastRefreshText = "";
+    $scope.lastRefreshElapsedSeconds = 0;
+    var timer = {}
     // Event that listens for refresh calls of timeLine
     $rootScope.$on('timeLineRefresh', function(event, args){
         getAuctions(function(err, data){
@@ -257,6 +259,9 @@ adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', f
             else {
                 $scope.$apply(function(){
                     $scope.timeLineElements = data;
+                    $timeout.cancel(timer);
+                    $scope.lastRefreshElapsedSeconds = 0;
+                    updateLastRefreshText();
                 });
 
             }
@@ -271,6 +276,9 @@ adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', f
         else {
             $scope.$apply(function(){
                 $scope.timeLineElements = data;
+                $timeout.cancel(timer);
+                $scope.lastRefreshElapsedSeconds = 0;
+                updateLastRefreshText();
             });
 
         }
@@ -285,10 +293,33 @@ adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', f
             else {
                 $scope.$apply(function(){
                     $scope.timeLineElements = data;
+                    $timeout.cancel(timer);
+                    $scope.lastRefreshElapsedSeconds = 0;
+                    updateLastRefreshText();
                 });
 
             }
         });
+    };
+
+    var updateLastRefreshText = function(){
+
+        timer = $timeout(function(){
+            var elapsedTime = ($scope.lastRefreshElapsedSeconds ++)/60;
+            if(elapsedTime < 1){
+                $scope.lastRefreshText = $scope.lastRefreshElapsedSeconds + ($scope.lastRefreshElapsedSeconds == 1 ? " second" : " seconds");
+            }
+            if(elapsedTime >= 1 && elapsedTime < 5){
+                $scope.lastRefreshText = "about 5 minutes";
+            }
+            if(elapsedTime >= 5 && elapsedTime < 30){
+                $scope.lastRefreshText = "about 30 minutes";
+            }
+            if(elapsedTime >= 30 && elapsedTime < 60){
+                $scope.lastRefreshText = "long time";
+            }
+            updateLastRefreshText();
+        },1000)
     };
 
 }]);
