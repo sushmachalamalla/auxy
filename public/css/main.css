@@ -43,6 +43,10 @@ p.enhance {
   font-size: larger;
 }
 
+p.white {
+  color: #ffffff;
+  white-space: pre-wrap;
+}
 
 .stepwizard-step p {
   margin-top: 10px;
@@ -285,3 +289,17 @@ p.enhance {
 .widget .action { margin-top:5px; }
 .widget .comment-text { font-size: 12px; white-space: pre-wrap; }
 .widget .btn-block { border-top-left-radius:0px;border-top-right-radius:0px; }
+
+.gutter {
+  margin-bottom: 10px;
+}
+
+.bidders-info > .heading {
+  font-size: x-large;
+  text-align: center;
+}
+
+.bidders-info > .body {
+  font-size: small;
+  text-align: center;
+}

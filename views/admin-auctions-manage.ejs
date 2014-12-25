@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html ng-app="admin-auctions-manage">
+<head>
+    <title>Auctions</title>
+    <link rel="stylesheet" href="/public/css/external/bootstrap.min.css" >
+    <link rel="stylesheet" href="/public/css/external/font-awesome.min.css">
+    <link rel="stylesheet" href="/public/css/external/jquery-ui.css">
+    <link rel="stylesheet" href="/public/css/main.css">
+</head>
+
+<body class="simple">
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand custom" href="#">Auxy</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/auctions">Auctions</a></li>
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Manage<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <%= user.local.email %><span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="/profile">My Profile</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li class="divider"></li>
+                        <li><a href="/logout">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+<% if(user.local.status == 0) { %>
+<div class="alert alert-warning alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+    <strong>Warning!</strong> The admin has not yet approved your request. Some functionality might be restricted
+</div>
+<% } %>
+<div class="panel panel-default" style="margin: 0px 20px 0px 20px;" ng-controller="auctionManageController" ng-init="auctionId = '<%= data.auctionId %>' ">
+    <div class="panel-body" ng-model="auctionData">
+        <div class="page-header">
+            <div class="btn-toolbar pull-right" role="toolbar">
+                <div class="btn-group-lg">
+                    <button type="button" class="btn btn-default" aria-label="Start Auction"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-default" aria-label="Auction Requests"><span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-default" aria-label="Auction Information" data-toggle="collapse" data-target="#auctionInfoPanel" ><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-default" aria-label="Justify"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></button>
+                </div>
+            </div>
+            <h1>{{auctionData.auctionName}}</h1>
+        </div>
+        <!--Auction Info Start-->
+        <div class=" collapse" id="auctionInfoPanel">
+            <div class="container" style="background-color: #1abc9c; width: 100%; height: 100%; margin-bottom: 10px;">
+                <div class="row" style="margin: 10px;">
+                    <h3 class="enhance lead text-center text-uppercase" ><span class="glyphicon glyphicon-file" aria-hidden="true"></span> Description</h3>
+                    <p class="lead text-center white">{{auctionData.auctionDescription}}</p>
+                    <h3 class="enhance lead text-center text-uppercase"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> By</h3>
+                    <p class="lead text-center white">{{auctionData.auctionCreatedBy}}</p>
+                    <h3 class="enhance lead text-center text-uppercase"><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> Date</h3>
+                    <p class="lead text-center white">{{auctionData.auctionDateOfAuction}}</p>
+                    <h3 class="enhance lead text-center text-uppercase"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span> Items</h3>
+                    <p class="lead text-center white">{{auctionData.auctionItems.length}}</p>
+                </div>
+            </div>
+        </div>
+        <!--Auction Info End-->
+        <div class="row">
+            <div class="col-xs-12 col-sm-6 col-md-8 gutter">
+                <div style="background-color: #2980b9; width: 100%; height: 100px;"></div>
+            </div>
+            <div class="col-xs-6 col-md-4">
+                <div style="background-color: #9b59b6; width: 100%; height: 100px;"></div>
+            </div>
+        </div>
+        <!--ng-repeat="item in auctionData.auctionItems"-->
+        <div ng-repeat="item in auctionData.auctionItems">
+            <div class="gutter"></div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-6 col-md-8 gutter">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <p class="enhance text-left text-uppercase"><i class="fa fa-bookmark-o fa-2x"></i> {{item.name}}</p>
+                        </div>
+                        <div class="panel-body">
+                            Panel content
+                        </div>
+                        <div class="panel-footer">
+                            <ul class="list-inline">
+                                <li><strong>Currency</strong> {{item.currency}}</li>
+                                <li><strong>Quantity</strong> {{item.quantity}}</li>
+                                <li><strong>Start</strong> {{item.startTime}}</li>
+                                <li><strong>End</strong> {{item.endTime}}</li>
+                                <li><strong>Floor Price</strong> {{item.floorPrice}}</li>
+                                <li><strong>Minimum Increment</strong> {{item.minimumIncrement}}</li>
+                            </ul>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-6 col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <!--<button type="button" class="btn btn-default pull-right" aria-label="Start Auction"><i class="fa fa-gears fa-2x"></i></button>-->
+                            <!-- Split button -->
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn btn-default"><i class="fa fa-gears"></i></button>
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#"><i class="fa fa-plus"></i> 1 Minute</a></li>
+                                    <li><a href="#"><i class="fa fa-plus"></i> 5 Minutes</a></li>
+                                    <li><a href="#"><i class="fa fa-minus"></i> 1 Minute</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="#">Separated link</a></li>
+                                </ul>
+                            </div>
+                            <p class="enhance text-center text-uppercase"><i class="fa fa-users fa-2x"></i> BIDDERS</p>
+                        </div>
+                        <div class="panel-body">
+                            <div class="bidders-info">
+                                <div class="heading">
+                                    <p class="enhance"> 9:00 </p>
+                                </div>
+                                <div class="body">
+                                    <p> auction is in progress </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- List group -->
+                        <ul class="list-group">
+                            <li class="list-group-item">Cras justo odio</li>
+                            <li class="list-group-item">Dapibus ac facilisis in</li>
+                            <li class="list-group-item">Morbi leo risus</li>
+                            <li class="list-group-item">Porta ac consectetur ac</li>
+                            <li class="list-group-item">Vestibulum at eros</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <hr/>
+        </div>
+
+    </div>
+
+</div>
+<!-- Scripts -->
+<script src="/public/js/external/jquery.min.js"></script>
+<script src="/public/js/external/jquery-ui.min.js"></script>
+<script src="/public/js/external/bootstrap.min.js"></script>
+<script src="/public/js/external/angular.min.js"></script>
+<script src="/public/controllers/auctions.js"></script>
+<script>
+    $(function(){
+
+    });
+</script>
+</body>
+</html>

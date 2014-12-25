@@ -1,4 +1,5 @@
 var adminAuctions = angular.module('admin-auctions', []);
+var adminAuctionsManage = angular.module('admin-auctions-manage', []);
 
 adminAuctions.controller('auctionsWizardController',['$scope', '$rootScope' , '$http', function ($scope, $rootScope, $http) {
     var sortableEle;
@@ -249,7 +250,7 @@ adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', '
     $scope.timeLineElements = [];
     $scope.lastRefreshText = "";
     $scope.lastRefreshElapsedSeconds = 0;
-    var timer = {}
+    var timer = {};
     // Event that listens for refresh calls of timeLine
     $rootScope.$on('timeLineRefresh', function(event, args){
         getAuctions(function(err, data){
@@ -315,8 +316,9 @@ adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', '
             if(elapsedTime >= 5 && elapsedTime < 30){
                 $scope.lastRefreshText = "about 30 minutes";
             }
-            if(elapsedTime >= 30 && elapsedTime < 60){
+            if (elapsedTime >= 30 && elapsedTime < 60) {
                 $scope.lastRefreshText = "long time";
+                $timeout.cancel(timer);
             }
             updateLastRefreshText();
         },1000)
@@ -499,4 +501,38 @@ var getAuctions = function(callback){
             callback(error, null);
         }
     })
+};
+
+
+adminAuctionsManage.controller('auctionManageController', ['$scope', '$rootScope', function($scope, $rootScope){
+    $scope.auctionData = {};
+    $scope.$watch('auctionId', function(){
+        getAuctionData($scope.auctionId, function(err, data){
+            if(err){
+
+            } else {
+                console.log(JSON.stringify(data));
+                $scope.$apply(function(){
+                    $scope.auctionData = data;
+                });
+
+            }
+        });
+    });
+
+}]);
+
+var getAuctionData = function(auctionId, callback){
+    if(typeof auctionId !== 'undefined' && auctionId !== ''){
+        $.ajax({
+            url: '/api/auctions/auction?id=' + auctionId,
+            type: 'GET',
+            success: function(data){
+                callback(null, data);
+            },
+            error: function(request, status, error){
+                callback(error, null);
+            }
+        })
+    }
 };

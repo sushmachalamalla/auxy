@@ -35,3 +35,29 @@ exports.getAuctions = function(data, callback){
             callback(null, doc);
         })
 };
+
+// Get details of a single auction
+exports.getAuctionDetails = function(auctionId, isAdmin, callback){
+    Auction.findOne({_id: auctionId }, function(err, auction){
+        if(err){
+            callback(err, null);
+        } else {
+            if(isAdmin){
+                // send all data
+                callback(null, auction);
+            } else {
+                //TODO: Optimize this
+                // Remove 1. biddingData in auctionItems
+                if(typeof auction.auctionItems !== 'undefined' && auction.auctionItems.length > 0){
+                    auction.auctionItems.forEach(function(item, index, object){
+                        if(typeof item.biddingData !== 'undefined'){
+                            object[index].biddingData.pop();
+                            object[index].biddingData.push('a');
+                        }
+                    });
+                }
+                callback(null, auction);
+            }
+        }
+    })
+};

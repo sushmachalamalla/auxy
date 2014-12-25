@@ -57,12 +57,12 @@ module.exports = function(app, passport) {
     res.render('buyer.ejs');
   });
 
-// Seller
+  // Seller
   app.get('/seller', function(req, res) {
     res.render('seller.ejs');
   });
 
-// Profile
+  // Profile
   app.get('/profile', isLoggedIn, function(req, res) {
     res.render('profile.ejs', {
       user: req.user
@@ -84,6 +84,31 @@ module.exports = function(app, passport) {
 // else render regular-auctions
   }); // get /auctions
 
+  // Auctions Manage
+  app.get('/auctions/manage', isLoggedIn, function(req, res){
+    //Check if auction id is provided
+    if(typeof req.query.id === 'undefined' || req.query.id === ''){
+      res.sendStatus(400);
+    }
+    else if(req.user.local.isAdmin){
+      // render admin-auctions-manage.ejs
+      res.render('admin-auctions-manage.ejs', {
+        user: req.user,
+        data: {
+          auctionId: req.query.id
+        }
+      });
+    } else{
+      // render regular-auctions-manage.ejs
+      res.render('regular-auctions-manage.ejs', {
+        user: req.user,
+        data: {
+          auctionId: req.query.id
+        }
+      });
+    }
+
+  });
   /* API Methods */
   app.get('/api/users', isLoggedIn, function(req, res){
     // Allow only for admins
@@ -189,6 +214,21 @@ module.exports = function(app, passport) {
     }
   });
 
+  app.get('/api/auctions/auction', isLoggedIn, function(req, res){
+    // anyone can request to get details of a particular auction
+    // but if requester is admin send additional data, else filter to few
+    if(typeof req.query.id === 'undefined' || req.query.id === ''){
+      res.sendStatus(400);
+    } else {
+      manageAuctions.getAuctionDetails(req.query.id, req.user.local.isAdmin, function(err, data){
+        if(err){
+          res.json({});
+        } else {
+          res.send(data);
+        }
+      });
+    }
+  });
   app.post('/api/auctions', isLoggedIn, function(req, res){
     // Allow only for admins
     if (req.user.local.isAdmin) {
