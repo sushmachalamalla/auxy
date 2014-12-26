@@ -7,9 +7,14 @@ var express                 = require('express'),
     cookieParser            = require('cookie-parser'),
     bodyParser              = require('body-parser'),
     session                 = require('express-session'),
-    flash                   = require('connect-flash');
+    flash                   = require('connect-flash'),
+    signature               = require('cookie-signature'),
+    cookie                  = require('cookie');
 
-var configDB                = require('./config/database.js');
+var configDB                = require('./config/database.js'),
+    store                   = new session.MemoryStore(),
+    secret                  = 'IrisBitGUID',
+    name                    = 'connect.sid';
 mongoose.connect(configDB.url);
 require('./config/passport')(passport);
 
@@ -19,11 +24,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 // required for passport
-app.use(session({ secret: 'IrisBitGUID',
-                  resave: false,
-                  saveUninitialized: true
-                })
-        ); // session secret
+app.use(session({
+        name: name,
+        cookie: {expires: new Date(Date.now() + 30*60*60*24*1000)},
+        secret: secret,
+        store: store,
+        resave: false,
+         saveUninitialized: true
+    })
+        );
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash());
@@ -32,7 +41,7 @@ require('./app/routes.js')(app, passport);
 
 // SOCKET IO
 var socketController = require('./controller/SocketController');
-socketController.SocketController(app, io);
+socketController.SocketController(app, io, cookie, name, secret ,signature, store);
 
 http.listen(8000, function() {
     console.log('listening on *:8000');
