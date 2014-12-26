@@ -261,9 +261,9 @@
     </h1>
   </div>
   <ul class="timeline" ng-repeat="item in timeLineElements">
-    <li ng-class="{'timeline-inverted': item.auctionState == '1'}">
-      <div ng-if="item.auctionState == '0'" class="timeline-badge"><i class="glyphicon glyphicon glyphicon-eye-close"></i></div>
-      <div ng-if="item.auctionState == '1'" class="timeline-badge info"><i class="glyphicon glyphicon glyphicon-eye-open"></i></div>
+    <li ng-class="{'timeline-inverted': item.isActive == '1'}">
+      <div ng-if="item.isActive == '0'" class="timeline-badge"><i class="glyphicon glyphicon glyphicon-eye-close"></i></div>
+      <div ng-if="item.isActive == '1'" class="timeline-badge info"><i class="glyphicon glyphicon glyphicon-eye-open"></i></div>
       <div class="timeline-panel">
         <div class="timeline-heading">
           <div class="btn-group pull-right">

@@ -286,7 +286,6 @@ adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', '
     });
 
     $scope.timeLineRefresh = function(){
-        console.log('timeLine refresh');
         getAuctions(function(err, data){
             if(err){
 
@@ -522,31 +521,78 @@ adminAuctionsManage.controller('auctionManageController', ['$scope', '$rootScope
         });
     });
 
-    // Start the auction process for the item passed
-    $scope.startAuctionForItem = function(item){
+    // Manage the auction process for the item passed
+    $scope.manageAuctionForItem = function(item){
         var index = $scope.auctionData.auctionItems.indexOf(item);
         var displayTime = {
             minute: 0,
             second:0
         };
-        $scope.auctionData.auctionItems[index].meta.biddingSummaryText = "auction will be started";
 
-        // disable till the process starts
-        $scope.auctionData.auctionItems[index].meta.isStartDisabled = true;
+        // check if starting or stopping
+        switch(item.itemState){
+            case 0:
+                console.log('Going to start');
+                $scope.auctionData.auctionItems[index].meta.biddingSummaryText = "auction will be started";
 
-        // start the timer count down of 0:30 before start
-        var timer = {};
-        countDownTimer(0,30, displayTime, timer, function(){
+                // disable till the process starts
+                $scope.auctionData.auctionItems[index].meta.isStartDisabled = true;
 
-            // after timer elapsed, start the auction for the item
-            // TODO Make api call to start this auction
-            //$scope.auctionData.auctionItems[index].meta.biddingSummaryText = "auction started";
-            // $scope.auctionData.auctionItems[index].meta.auctionForItemStarted = true;
-            $scope.auctionData.auctionItems[index].meta.isStartDisabled = false;
-        });
+                // start the timer count down of 0:30 before start
+                var timer = {};
+                countDownTimer(0,5, displayTime, timer, function(){
+
+                    // after timer elapsed, start the auction for the item
+                    changeAuctionItemState($scope.auctionData._id, item._id, 2, function(err, data){
+                        if(err){
+                            console.log(err);
+                            $scope.$apply(function(){
+                                $scope.auctionData.auctionItems[index].meta.isStartDisabled = false;
+                            });
+                        }else {
+                            $scope.$apply(function(){
+                                $scope.auctionData.auctionItems[index].meta.biddingSummaryText = "auction in progress";
+                                $scope.auctionData.auctionItems[index].itemState = 2;
+                                $scope.auctionData.auctionItems[index].meta.auctionForItemStarted = true;
+                                $scope.auctionData.auctionItems[index].meta.isStartDisabled = false;
+                            });
+                        }
+
+                    });
+
+                });
+                break;
+            case 1:
+                console.log('Stopped');
+                break;
+            case 2:
+                console.log('Going to stop');
+                // disable till the process starts
+                $scope.auctionData.auctionItems[index].meta.isStartDisabled = true;
+                // after timer elapsed, start the auction for the item
+                changeAuctionItemState($scope.auctionData._id, item._id, 1, function(err, data){
+                    if(err){
+                        console.log(err);
+                        $scope.$apply(function(){
+                            $scope.auctionData.auctionItems[index].meta.isStartDisabled = false;
+                        });
+                    }else {
+                        $scope.$apply(function(){
+                            $scope.auctionData.auctionItems[index].meta.biddingSummaryText = "auction is completed";
+                            $scope.auctionData.auctionItems[index].itemState = 1;
+                            $scope.auctionData.auctionItems[index].meta.auctionForItemStarted = true;
+                            $scope.auctionData.auctionItems[index].meta.isStartDisabled = false;
+                        });
+                    }
+
+                });
+                break;
+            default :
+                console.log('Invalid');
+                break;
+        }
 
         $scope.auctionData.auctionItems[index].meta.displayTime = displayTime;
-
 
 
 
@@ -622,7 +668,6 @@ adminAuctionsManage.controller('auctionManageController', ['$scope', '$rootScope
                 $scope.$apply(function(){
                     $scope.auctionData.participationRequests.isLoaded = true;
                     $scope.auctionData.participationRequests.data = data;
-                    console.log(JSON.stringify(data));
                 });
                 if(data.length > 0) {
                     $scope.$apply(function(){
@@ -730,4 +775,34 @@ var getAuctionData = function(auctionId, callback){
             }
         })
     }
+};
+
+var changeAuctionState = function(auctionId, auctionState, callback){
+    $.ajax({
+        url: '/api/auctions/auction/ChangeAuctionState?id=' + auctionId + '&auctionState=' + auctionState,
+        type: 'POST',
+        contentType: 'application/json',
+        success: function(data){
+            callback(null, data);
+        },
+        error: function(request, status, error){
+            console.log(err);
+            callback(error, null);
+        }
+    });
+};
+
+var changeAuctionItemState = function(auctionId, auctionItemId, auctionItemState, callback){
+    $.ajax({
+        url: '/api/auctions/auction/ChangeAuctionItemState?id=' + auctionId + '&itemId=' + auctionItemId + '&auctionItemState=' + auctionItemState,
+        type: 'POST',
+        contentType: 'application/json',
+        success: function(data){
+            callback(null, data);
+        },
+        error: function(request, status, error){
+            console.log(err);
+            callback(error, null);
+        }
+    });
 };

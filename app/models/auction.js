@@ -14,7 +14,8 @@ var auctionSchema = mongoose.Schema({
         quantity: Number,
         startTime: String,
         endTime: String,
-        state: {type: Number, default: 1}, // 0:Inactive, 1:Active
+        isActive: { type: Boolean, default: true}, // Admin can make an auction item active/ inactive
+        itemState: {type: Number, default: 0}, // 0: Not Started, 1: Completed, 2: In Progress
         biddingData: [{
             // There can be multiple bidding for the same item, till the item is sold
             itemStateAfterBidding: {type: Number, default: 0}, // 0: unsold, 1: sold
@@ -25,7 +26,8 @@ var auctionSchema = mongoose.Schema({
     }],
     auctionCreatedBy: String,
     auctionCreatedDate: {type: Date, default: Date.now},
-    auctionState: {type: Number, default: 1} // 0:Inactive, 1:Active
+    isActive: { type: Boolean, default: true}, // Admin can make an auction active/ inactive
+    auctionState: {type: Number, default: 0} // 0: Not Started, 1: Completed, 2: In Progress
 });
 
 module.exports = mongoose.model('Auction', auctionSchema);

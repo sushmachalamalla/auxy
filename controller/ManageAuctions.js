@@ -65,3 +65,35 @@ exports.getAuctionDetails = function(auctionId, isAdmin, callback){
         }
     })
 };
+
+// Change the auction state
+exports.changeAuctionState = function (userData, callback){
+    if(typeof userData !== 'undefined'){
+        Auction.update({'_id' : userData.auctionId}, {'auctionState' : userData.auctionState}, { upsert: false}, function(err, numberEffected){
+            if(err){
+                callback(err, null);
+            }
+            else{
+                callback(null, numberEffected);
+            }
+        });
+    } else {
+        callback({}, null);
+    }
+};
+
+// Change the auction Item state
+exports.changeAuctionItemState = function (userData, callback){
+    if(typeof userData !== 'undefined'){
+        Auction.update({'_id' : userData.auctionId, 'auctionItems._id' : userData.auctionItemId}, {'auctionItems.$.itemState' : userData.auctionItemState }, { upsert: false}, function(err, numberEffected){
+            if(err){
+                callback(err, null);
+            }
+            else{
+                callback(null, numberEffected);
+            }
+        });
+    } else {
+        callback({}, null);
+    }
+};

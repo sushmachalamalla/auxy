@@ -278,7 +278,7 @@ module.exports = function(app, passport) {
       }
     }
     else {
-      res.sendStatus(400);
+      res.sendStatus(403);
     }
   });
 
@@ -322,6 +322,57 @@ module.exports = function(app, passport) {
       res.sendStatus(403);
     }
 
+  });
+
+  // an Admin can change the auction state
+  app.post('/api/auctions/auction/ChangeAuctionState', isLoggedIn, function(req, res){
+    // only admin can issue this request
+    if(req.user.local.isAdmin){
+      if(typeof req.query.id === 'undefined' && req.query.id === '' && typeof req.query.auctionState === 'undefined' && req.query.auctionState === ''){
+        res.sendStatus(400);
+      } else {
+        var userData = {
+          auctionId: req.query.id,
+          auctionState: req.query.auctionState || 0
+        };
+        manageAuctions.changeAuctionState(userData, function(err, data){
+          if(err){
+            res.sendStatus(400);
+          } else {
+            res.json({saved: true});
+          }
+        })
+      }
+    } else {
+      res.sendStatus(403);
+    }
+  });
+
+  // an Admin can change the auction Item state
+  app.post('/api/auctions/auction/ChangeAuctionItemState', isLoggedIn, function(req, res){
+    // only admin can issue this request
+    if(req.user.local.isAdmin){
+      if(typeof req.query.id === 'undefined' && req.query.id === ''
+          && typeof req.query.itemId === 'undefined' && req.query.itemId === ''
+          && typeof req.query.auctionItemState === 'undefined' && req.query.auctionItemState === ''){
+        res.sendStatus(400);
+      } else {
+        var userData = {
+          auctionId: req.query.id,
+          auctionItemId: req.query.itemId,
+          auctionItemState: req.query.auctionItemState || 0
+        };
+        manageAuctions.changeAuctionItemState(userData, function(err, data){
+          if(err){
+            res.sendStatus(400);
+          } else {
+            res.json({saved: true});
+          }
+        })
+      }
+    } else {
+      res.sendStatus(403);
+    }
   });
 
 };

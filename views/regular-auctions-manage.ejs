@@ -85,17 +85,33 @@
         <!--Auction Info End-->
         <div class="row">
             <div class="col-xs-12 col-sm-6 col-md-8 gutter">
-                <div style="background-color: #2980b9; width: 100%; height: 100px;"></div>
+                <div style="background-color: #2980b9; width: 100%; height: 50px;">
+                    <div class="container-fluid">
+                        <div>
+                            <p class=" enhance text-center white">{{auctionData.isActive ? 'Auction is on schedule' : 'Auction is inactive and may not be held'}}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-xs-6 col-md-4">
-                <div style="background-color: #9b59b6; width: 100%; height: 100px;"></div>
+                <div style="background-color: #9b59b6; width: 100%; height: 50px;">
+                    <div  ng-if="auctionData.auctionState == 0">
+                        <p class=" enhance text-center white">Auction not started</p>
+                    </div>
+                    <div ng-if="auctionData.auctionState == 1">
+                        <p class=" enhance text-center white">Auction completed</p>
+                    </div>
+                    <div ng-if="auctionData.auctionState == 2">
+                        <p class=" enhance text-center white">Auction is in progress</p>
+                    </div>
+                </div>
             </div>
         </div>
         <!--ng-repeat="item in auctionData.auctionItems"-->
         <div ng-repeat="item in auctionData.auctionItems">
             <div class="gutter"></div>
-            <div class="row" ng-init="item.meta.displayTime.minute = 0; item.meta.displayTime.second = 0; item.meta.biddingSummaryText = 'auction not started'; item.meta.auctionForItemStarted = false; item.meta.isStartDisabled = false;">
-                <div class="col-xs-12 col-sm-6 col-md-8 gutter">
+            <div class="row" ng-init="item.meta.displayTime.minute = 0; item.meta.displayTime.second = 0; item.meta.biddingSummaryText = item.itemState == 1 ? 'auction completed' : 'auction in progress' ; item.meta.biddingSummaryText = item.itemState == 2 ? 'auction in progress' : ''; item.meta.biddingSummaryText = item.itemState == 1 ? 'auction completed' : 'auction in progress'  ; item.meta.auctionForItemStarted = false; item.meta.isStartDisabled = false;">
+            <div class="col-xs-12 col-sm-6 col-md-8 gutter">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <p class="enhance text-left text-uppercase"><i class="fa fa-bookmark-o fa-2x"></i> {{item.name}}</p>
@@ -123,7 +139,7 @@
                         </div>
                         <div class="panel-body">
                             <div class="bidders-info">
-                                <div class="heading">
+                                <div class="heading" ng-hide="item.itemState == 1">
                                     <p class="enhance"> {{item.meta.displayTime.minute}} : {{item.meta.displayTime.second}} </p>
                                 </div>
                                 <div class="body">
@@ -181,7 +197,9 @@
 <script src="/public/js/external/bootstrap.min.js"></script>
 <script src="/public/js/external/angular.min.js"></script>
 <script src="/public/controllers/auctions.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
+    var socket = io();
     $(function(){
 
     });
