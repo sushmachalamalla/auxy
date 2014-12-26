@@ -1,5 +1,6 @@
-var manageUsers       = require('../controller/ManageUsers'),
-    manageAuctions    = require('../controller/ManageAuctions');
+var manageUsers                   = require('../controller/ManageUsers'),
+    manageAuctions                = require('../controller/ManageAuctions'),
+    manageAuctionParticipation    = require('../controller/ManageAuctionParticipation');
 
 module.exports = function(app, passport) {
 
@@ -86,6 +87,7 @@ module.exports = function(app, passport) {
 
   // Auctions Manage
   app.get('/auctions/manage', isLoggedIn, function(req, res){
+
     //Check if auction id is provided
     if(typeof req.query.id === 'undefined' || req.query.id === ''){
       res.sendStatus(400);
@@ -95,16 +97,28 @@ module.exports = function(app, passport) {
       res.render('admin-auctions-manage.ejs', {
         user: req.user,
         data: {
-          auctionId: req.query.id
+          auctionId: req.query.id,
+          isAllowedForAuction: true
         }
       });
     } else{
-      // render regular-auctions-manage.ejs
-      res.render('regular-auctions-manage.ejs', {
-        user: req.user,
-        data: {
-          auctionId: req.query.id
-        }
+
+      // check if user allowed for this auction
+      manageAuctionParticipation.checkUserApproval(req.query.id, function(err, data){
+        var isApproved = false;
+          if(typeof data !== 'undefined' && data != null){
+            isApproved = data.isApproved
+          }
+        // render regular-auctions-manage.ejs
+        res.render('regular-auctions-manage.ejs', {
+          user: req.user,
+          data: {
+            auctionId: req.query.id,
+            isAllowedForAuction: isApproved
+          }
+
+        });
+
       });
     }
 
@@ -191,12 +205,25 @@ module.exports = function(app, passport) {
   });
 
   app.get('/api/auctions', isLoggedIn, function(req, res){
+    manageAuctions.getAuctions(null,function(err, data){
+      if (err) {
+        res.sendStatus(400);
+      }
+      else{
+        res.json(data);
+      }
+    })
+  });
+
+  app.post('/api/auctions', isLoggedIn, function(req, res){
     // Allow only for admins
     if (req.user.local.isAdmin) {
+      var auctionData = req.body.auctionInfo;
+      if (typeof auctionData !== 'undefined') {
 
-      if (true) {
-
-        manageAuctions.getAuctions(null,function(err, data){
+        // add createdBy field
+        auctionData.auctionCreatedBy = req.user.local.email;
+        manageAuctions.createAuction(auctionData, function(err, data){
           if (err) {
             res.sendStatus(400);
           }
@@ -229,30 +256,72 @@ module.exports = function(app, passport) {
       });
     }
   });
-  app.post('/api/auctions', isLoggedIn, function(req, res){
-    // Allow only for admins
-    if (req.user.local.isAdmin) {
-      var auctionData = req.body.auctionInfo;
-      if (typeof auctionData !== 'undefined') {
 
-        // add createdBy field
-        auctionData.auctionCreatedBy = req.user.local.email;
-        manageAuctions.createAuction(auctionData, function(err, data){
-          if (err) {
+  // get all users requesting to participate in an auction
+  app.get('/api/auctions/auction/request', isLoggedIn, function(req, res){
+    // only admin can view
+    if(req.user.local.isAdmin){
+      if(typeof req.query.id === 'undefined' || req.query.id === ''){
+        res.sendStatus(400);
+      } else {
+        var userData = {
+          userId: req.user._id,
+          auctionId: req.query.id
+        };
+        manageAuctionParticipation.getAuctionParticipationRequests(userData, function(err, data){
+          if(err){
             res.sendStatus(400);
-          }
-          else{
-            res.json(data);
+          } else {
+            res.send(data);
           }
         })
       }
-      else{
+    }
+    else {
+      res.sendStatus(400);
+    }
+  });
+
+  // a user can opt to participate in an auction
+  app.post('/api/auctions/auction/request', isLoggedIn, function(req, res){
+    if(typeof req.query.id === 'undefined' || req.query.id === ''){
+      res.sendStatus(400);
+    } else {
+      var userData = {
+        userId: req.user._id,
+        auctionId: req.query.id,
+        message: req.body.message || ''
+      };
+      manageAuctionParticipation.createRequest(userData, function(err, data){
+        if(err){
+          res.sendStatus(400);
+        } else {
+          res.json({saved: true});
+        }
+      })
+    }
+  });
+
+  // an admin can approve or reject a request
+  app.put('/api/auctions/auction/request', isLoggedIn, function(req, res){
+    // Only for admin
+    if(req.user.local.isAdmin){
+      if(typeof req.body.requestData === 'undefined' ){
         res.sendStatus(400);
+      } else {
+        manageAuctionParticipation.manageRequests(req.body.requestData, function(err, data){
+          if(err){
+            res.sendStatus(400);
+          } else {
+            res.json({saved: true});
+          }
+        })
       }
     }
     else {
-      res.sendStatus(401);
+      res.sendStatus(403);
     }
+
   });
 
 };

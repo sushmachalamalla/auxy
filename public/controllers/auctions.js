@@ -504,8 +504,10 @@ var getAuctions = function(callback){
 };
 
 
-adminAuctionsManage.controller('auctionManageController', ['$scope', '$rootScope', function($scope, $rootScope){
+adminAuctionsManage.controller('auctionManageController', ['$scope', '$rootScope', '$timeout', function($scope, $rootScope, $timeout){
     $scope.auctionData = {};
+    $scope.auctionData.participationRequests = {};
+    var alertHTML="";
     $scope.$watch('auctionId', function(){
         getAuctionData($scope.auctionId, function(err, data){
             if(err){
@@ -519,6 +521,199 @@ adminAuctionsManage.controller('auctionManageController', ['$scope', '$rootScope
             }
         });
     });
+
+    // Start the auction process for the item passed
+    $scope.startAuctionForItem = function(item){
+        var index = $scope.auctionData.auctionItems.indexOf(item);
+        var displayTime = {
+            minute: 0,
+            second:0
+        };
+        $scope.auctionData.auctionItems[index].meta.biddingSummaryText = "auction will be started";
+
+        // disable till the process starts
+        $scope.auctionData.auctionItems[index].meta.isStartDisabled = true;
+
+        // start the timer count down of 0:30 before start
+        var timer = {};
+        countDownTimer(0,30, displayTime, timer, function(){
+
+            // after timer elapsed, start the auction for the item
+            // TODO Make api call to start this auction
+            //$scope.auctionData.auctionItems[index].meta.biddingSummaryText = "auction started";
+            // $scope.auctionData.auctionItems[index].meta.auctionForItemStarted = true;
+            $scope.auctionData.auctionItems[index].meta.isStartDisabled = false;
+        });
+
+        $scope.auctionData.auctionItems[index].meta.displayTime = displayTime;
+
+
+
+
+    };
+
+    var countDownTimer = function(minutes, seconds, displayTime, timer, callback){
+        timer = $timeout(function(){
+            console.log(minutes + " " + seconds);
+            if(seconds >= 0){
+                $scope.$apply(function(){
+                    displayTime.minute = minutes;
+                    displayTime.second = seconds;
+
+                    countDownTimer(0,seconds - 1, displayTime, timer, callback);
+
+                });
+            } else {
+                $timeout.cancel(timer);
+                callback();
+            }
+        },1000);
+    };
+
+    $scope.submitAuctionRequestAccess = function(){
+
+        $.ajax({
+            url: '/api/auctions/auction/request?id=' + $scope.auctionId,
+            type: 'POST',
+            data: {message: $scope.auctionRequestAccessMessage},
+            contentType: "application/x-www-form-urlencoded",
+            success: function(data){
+                alertHTML += "            <div class=\"alert alert-success alert-dismissible\" role=\"alert\">";
+                alertHTML += "              <button type=\"button\" class=\"close\" data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;<\/span><span class=\"sr-only\">Close<\/span><\/button>";
+                alertHTML += "              <strong>Success!<\/strong> Your request for auction <strong>"+ $scope.auctionData.auctionName +"<\/strong> has been sent";
+                alertHTML += "            <\/div>";
+
+                $('#submitAuctionRequestAccessAlert').html(alertHTML);
+                $("#submitAuctionRequestAccessAlert").fadeTo(2000, 2000).slideUp(1000, function(){
+                    $("#submitAuctionRequestAccessAlert").alert('close');
+                });
+
+                // Clear the controls
+                $scope.$apply(function(){
+                    $scope.auctionRequestAccessMessage = "";
+                });
+
+            },
+            error: function(request, status, error){
+                alertHTML += "            <div class=\"alert alert-danger alert-dismissible\" role=\"alert\">";
+                alertHTML += "              <button type=\"button\" class=\"close\" data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;<\/span><span class=\"sr-only\">Close<\/span><\/button>";
+                alertHTML += "              <strong>Failed!<\/strong> Your request for auction <strong>"+ $scope.auctionName +"<\/strong> could not be completed. Please try again!";
+                alertHTML += "            <\/div>";
+
+                $('#submitAuctionRequestAccessAlert').html(alertHTML);
+                $("#submitAuctionRequestAccessAlert").fadeTo(2000, 2000).slideUp(2000, function(){
+                    $("#submitAuctionRequestAccessAlert").alert('close');
+                });
+            }
+        });
+    };
+
+    $scope.getAuctionParticipationRequests = function(){
+
+        $scope.auctionData.participationRequests = {};
+        $scope.auctionData.participationRequests.isLoaded = false;
+        alertHTML = "";
+        $('#requestsModal').modal();
+        $.ajax({
+            url: '/api/auctions/auction/request?id=' + $scope.auctionData._id,
+            type: 'GET',
+            contentType: 'application/json',
+            success: function(data){
+                $scope.$apply(function(){
+                    $scope.auctionData.participationRequests.isLoaded = true;
+                    $scope.auctionData.participationRequests.data = data;
+                    console.log(JSON.stringify(data));
+                });
+                if(data.length > 0) {
+                    $scope.$apply(function(){
+                        $scope.auctionData.participationRequests.areRequestsAvailable = true;
+                    });
+
+                } else {
+                    alertHTML += "            <div class=\"alert alert-danger alert-dismissible\" role=\"alert\">";
+                    alertHTML += "              <button type=\"button\" class=\"close\" data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;<\/span><span class=\"sr-only\">Close<\/span><\/button>";
+                    alertHTML += "              <strong>Sweet!<\/strong> There are no requests for this auction";
+                    alertHTML += "            <\/div>";
+
+                    $('#requestsAccessAlert').html(alertHTML);
+                    $("#requestsAccessAlert").fadeTo(15000, 15000).slideUp(2000, function(){
+                        $("#requestsAccessAlert").alert('close');
+                    });
+
+                }
+            },
+            error: function( request, status, err) {
+                alertHTML += "            <div class=\"alert alert-danger alert-dismissible\" role=\"alert\">";
+                alertHTML += "              <button type=\"button\" class=\"close\" data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;<\/span><span class=\"sr-only\">Close<\/span><\/button>";
+                alertHTML += "              <strong>Failed!<\/strong> Your request could not be completed. Please try again ";
+                alertHTML += "            <\/div>";
+
+                $('#requestsAccessAlert').html(alertHTML);
+                $("#requestsAccessAlert").fadeTo(2000, 2000).slideUp(2000, function(){
+                    $("#requestsAccessAlert").alert('close');
+                });
+            }
+        })
+    };
+
+    $scope.submitAuctionRequestApprovals = function(){
+        var approved = [];
+        var unapproved = [];
+
+        $scope.auctionData.participationRequests.data.forEach(function(item, index, arr){
+            if(item.isApproved){
+                approved.push(item.requestId);
+            }
+            else {
+                unapproved.push(item.requestId);
+            }
+        });
+
+        $.ajax({
+            url: '/api/auctions/auction/request',
+            type: 'PUT',
+            contentType: "application/x-www-form-urlencoded",
+            data: { requestData: {
+                approved: approved,
+                unapproved: unapproved
+            }},
+            success: function(data){
+                alertHTML = "";
+                alertHTML += "            <div class=\"alert alert-success alert-dismissible\" role=\"alert\">";
+                alertHTML += "              <button type=\"button\" class=\"close\" data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;<\/span><span class=\"sr-only\">Close<\/span><\/button>";
+                alertHTML += "              <strong>Success!<\/strong> Your approvals are sent successfully.";
+                alertHTML += "            <\/div>";
+
+                $('#requestsAccessAlert').html(alertHTML);
+                $("#requestsAccessAlert").fadeTo(2000, 2000).slideUp(1000, function(){
+                    $("#requestsAccessAlert").alert('close');
+                });
+
+                // Clear the controls
+                $scope.$apply(function(){
+                    $scope.auctionName = "";
+                    $scope.auctionDescription = "";
+                    $scope.auctionDateOfAuction = "";
+                    $scope.auctionItems = [];
+                });
+
+                // Call the timeLineRefresh event
+                $rootScope.$broadcast("timeLineRefresh", {});
+            },
+            error: function(request, status, error){
+                alertHTML = "";
+                alertHTML += "            <div class=\"alert alert-danger alert-dismissible\" role=\"alert\">";
+                alertHTML += "              <button type=\"button\" class=\"close\" data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;<\/span><span class=\"sr-only\">Close<\/span><\/button>";
+                alertHTML += "              <strong>Failed!<\/strong> Your approvals could not be saved. Please try again!";
+                alertHTML += "            <\/div>";
+
+                $('#requestsAccessAlert').html(alertHTML);
+                $("#requestsAccessAlert").fadeTo(2000, 2000).slideUp(2000, function(){
+                    $("#requestsAccessAlert").alert('close');
+                });
+            }
+        })
+    };
 
 }]);
 

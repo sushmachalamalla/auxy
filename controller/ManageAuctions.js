@@ -56,6 +56,10 @@ exports.getAuctionDetails = function(auctionId, isAdmin, callback){
                         }
                     });
                 }
+
+                // Remove 2. approvedUsers in auction
+                auction.approvedUsers = [];
+
                 callback(null, auction);
             }
         }

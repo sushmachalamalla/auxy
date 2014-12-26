@@ -17,7 +17,7 @@ $(function(){
 
       if (approved.length > 0) {
         $.ajax({
-          url: '/users',
+          url: '/api/users',
           type: 'POST',
           data:  {usersIdsToApprove: approved },
           contentType: "application/x-www-form-urlencoded",
