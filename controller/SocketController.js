@@ -3,7 +3,7 @@ exports.SocketController = function(app, io, cookie, name, secret, signature, st
 
 
     function BidData(usr, amnt, sock) {
-        this.userSessionId = usr;
+        this.userId = usr;
         this.bidAmount = amnt;
     }
 
@@ -17,15 +17,15 @@ exports.SocketController = function(app, io, cookie, name, secret, signature, st
             }
         }
         if (socket.sessionId) {
-            //store.get(socket.sessionId, function(err, session) {
-            //    console.log('[Session] '+session);
-            //});
+            store.get(socket.sessionId, function(err, session) {
+                // console.log('[Session] '+ JSON.stringify(session));
+                socket.join(session.passport.user);
+            });
         }
 
         console.log('[Connected] [SessionID] = %s [SockedID] = %s ', socket.sessionId, socket.id);
 
-        var uniqueID = socket.sessionId;
-        socket.join(uniqueID);
+        //var uniqueID = socket.sessionId;
 
         socket.on('disconnect', function() {
             console.log('[Disconnected] [SessionID] = %s [SockedID] = %s ', socket.sessionId, socket.id);
@@ -33,49 +33,32 @@ exports.SocketController = function(app, io, cookie, name, secret, signature, st
         });
 
         socket.on('Bids', function(msg) {
-            var dat = new BidData(uniqueID, msg.bidAmount);
+            store.get(socket.sessionId, function(err, session) {
+                //session.passport.user
+                var dat = new BidData(session.passport.user, msg.bidAmount);
 
-            // Add/update data according to user
-            upsertData(dat);
-            //if (BIDS.length === 0) {
-            //    BIDS.push(dat);
-            //} else {
-            //    for (var i = 0; i < BIDS.length; i++) {
-            //        if (BIDS[i].user == msg.user) {
-            //            BIDS[i].bidAmount = msg.bidAmount;
-            //            break;
-            //        } else {
-            //            if (i == BIDS.length - 1) {
-            //                BIDS.push(dat);
-            //                break;
-            //            }
-            //        }
-            //    } //for
-            //}
+                // Add/update data according to user
+                upsertData(dat);
 
-            console.log('------------');
+                console.log('------------');
 
-            var sorted = BIDS.sort(function(a, b) {
-                return parseInt(b.bidAmount) - parseInt(a.bidAmount);
+                var sorted = BIDS.sort(function(a, b) {
+                    return parseInt(b.bidAmount) - parseInt(a.bidAmount);
+                });
+
+                // emit the rank to individuals
+                for (var j =0; j < BIDS.length; j++){
+                    var sessionId = BIDS[j].userId;
+                    console.log('[USER ID]: '+ sessionId + " [RANK]: " + (parseInt(j) + 1));
+                    //var usrSock = io.sockets.connected[id];
+                    var message = {
+                        rank: (parseInt(j)+1) ,
+                        bidvalue: BIDS[j].bidAmount
+                    };
+                    io.to(sessionId).emit('rank', message);
+
+                }
             });
-            console.log(sorted);
-
-            // emit the rank to individuals
-            for (var j =0; j < BIDS.length; j++){
-                var sessionId = BIDS[j].userSessionId;
-                console.log('[USER Session ID]: '+ sessionId + " [RANK]: " + (parseInt(j) + 1));
-                //var usrSock = io.sockets.connected[id];
-                var message = {
-                    rank: (parseInt(j)+1) ,
-                    bidvalue: BIDS[j].bidAmount
-                };
-                //if (typeof usrSock != 'undefined') {
-                //    usrSock.emit("rank", message);
-                //}
-                io.to(sessionId).emit('rank', message);
-
-            }
-
         });
 
         // Admin Channel
@@ -96,7 +79,7 @@ exports.SocketController = function(app, io, cookie, name, secret, signature, st
         var i = 0;
 
         while( i < BIDS.length){
-            if(BIDS[i].userSessionId == data.userSessionId){
+            if(BIDS[i].userId == data.userId){
                 BIDS[i].bidAmount = data.bidAmount;
                 exists = true;
                 break;
@@ -107,6 +90,6 @@ exports.SocketController = function(app, io, cookie, name, secret, signature, st
         if(!exists){
             BIDS.push(data);
         }
-    }
+    };
 
 };

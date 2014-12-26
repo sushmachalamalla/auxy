@@ -9,7 +9,8 @@ var express                 = require('express'),
     session                 = require('express-session'),
     flash                   = require('connect-flash'),
     signature               = require('cookie-signature'),
-    cookie                  = require('cookie');
+    cookie                  = require('cookie'),
+    passportSocketIo        = require("passport.socketio");
 
 var configDB                = require('./config/database.js'),
     store                   = new session.MemoryStore(),
@@ -40,6 +41,25 @@ app.use('/public', express.static(__dirname + "/public"));
 require('./app/routes.js')(app, passport);
 
 // SOCKET IO
+io.use(passportSocketIo.authorize({
+    cookieParser: cookieParser,
+    key:         name,       // the name of the cookie where express/connect stores its session_id
+    secret:      secret,    // the session_secret to parse the cookie
+    store:       store,        // we NEED to use a sessionstore. no memorystore please
+    success:     onAuthorizeSuccess,  // *optional* callback on success - read more below
+    fail:        onAuthorizeFail    // *optional* callback on fail/error - read more below
+
+}));
+function onAuthorizeSuccess(data, accept){
+    console.log('successful connection to socket.io');
+    accept();
+}
+
+function onAuthorizeFail(data, message, error, accept){
+    if(error)
+        accept(new Error(message));
+}
+
 var socketController = require('./controller/SocketController');
 socketController.SocketController(app, io, cookie, name, secret ,signature, store);
 
