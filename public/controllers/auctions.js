@@ -323,6 +323,18 @@ adminAuctions.controller('auctionsTimeLineController',['$scope', '$rootScope', '
         },1000)
     };
 
+    $scope.timeLineFilter = function(item){
+        if(!$scope.timeLineFilterQuery)
+            return true;
+        if(angular.lowercase(item.auctionName).indexOf($scope.timeLineFilterQuery) != -1
+            || angular.lowercase(item.auctionDescription).indexOf($scope.timeLineFilterQuery) != -1
+            || angular.lowercase(item.auctionCreatedBy).indexOf($scope.timeLineFilterQuery) != -1
+            || angular.lowercase(item.auctionDateOfAuction).indexOf($scope.timeLineFilterQuery) != -1){
+            return true;
+        }
+        return false;
+    }
+
 }]);
 
 var commonCurrencyList = function(){

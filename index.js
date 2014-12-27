@@ -43,11 +43,11 @@ require('./app/routes.js')(app, passport);
 // SOCKET IO
 io.use(passportSocketIo.authorize({
     cookieParser: cookieParser,
-    key:         name,       // the name of the cookie where express/connect stores its session_id
-    secret:      secret,    // the session_secret to parse the cookie
-    store:       store,        // we NEED to use a sessionstore. no memorystore please
-    success:     onAuthorizeSuccess,  // *optional* callback on success - read more below
-    fail:        onAuthorizeFail    // *optional* callback on fail/error - read more below
+    key:         name,
+    secret:      secret,
+    store:       store,
+    success:     onAuthorizeSuccess,
+    fail:        onAuthorizeFail
 
 }));
 function onAuthorizeSuccess(data, accept){
